@@ -1,34 +1,11 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import AdBanner from "@/components/AdBanner";
+import { getDb } from "@/db";
+import { templates } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
-
-interface Template {
-  id: number;
-  name: string;
-  description: string;
-  imageUrl: string;
-  fileUrl: string;
-  fileName: string;
-  downloads: number;
-  createdAt: string;
-}
-
-async function getTemplate(id: string): Promise<Template | null> {
-  try {
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const res = await fetch(`${baseUrl}/api/templates/${id}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
-}
 
 export default async function TemplatePage({
   params,
@@ -36,7 +13,29 @@ export default async function TemplatePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const template = await getTemplate(id);
+
+  let template: {
+    id: number;
+    name: string;
+    description: string;
+    imageUrl: string;
+    fileUrl: string;
+    fileName: string;
+    downloads: number;
+    createdAt: string;
+  } | null = null;
+
+  try {
+    const db = getDb();
+    const result = await db
+      .select()
+      .from(templates)
+      .where(eq(templates.id, Number(id)))
+      .limit(1);
+    template = result[0] || null;
+  } catch {
+    notFound();
+  }
 
   if (!template) {
     notFound();

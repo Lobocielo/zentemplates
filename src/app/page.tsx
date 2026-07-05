@@ -1,36 +1,28 @@
 import TemplateCard from "@/components/TemplateCard";
 import AdBanner from "@/components/AdBanner";
+import { getDb } from "@/db";
+import { templates } from "@/db/schema";
 
 export const dynamic = "force-dynamic";
 
-interface Template {
-  id: number;
-  name: string;
-  description: string;
-  imageUrl: string;
-  fileUrl: string;
-  fileName: string;
-  downloads: number;
-  createdAt: string;
-}
-
-async function getTemplates(): Promise<Template[]> {
-  try {
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const res = await fetch(`${baseUrl}/api/templates`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return [];
-    return res.json();
-  } catch {
-    return [];
-  }
-}
-
 export default async function HomePage() {
-  const templates = await getTemplates();
+  let templateList: {
+    id: number;
+    name: string;
+    description: string;
+    imageUrl: string;
+    fileUrl: string;
+    fileName: string;
+    downloads: number;
+    createdAt: string;
+  }[] = [];
+
+  try {
+    const db = getDb();
+    templateList = await db.select().from(templates).orderBy(templates.createdAt);
+  } catch {
+    // DB not configured yet
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -44,7 +36,7 @@ export default async function HomePage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {templates.map((template, index) => (
+        {templateList.map((template, index) => (
           <div key={template.id}>
             <TemplateCard template={template} />
             {(index + 1) % 6 === 0 && (
@@ -56,7 +48,7 @@ export default async function HomePage() {
         ))}
       </div>
 
-      {templates.length === 0 && (
+      {templateList.length === 0 && (
         <div className="text-center py-20">
           <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
