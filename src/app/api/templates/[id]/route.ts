@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { templates } from "@/db/schema";
 import { eq } from "drizzle-orm";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(
   _request: Request,
@@ -9,6 +11,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    const db = getDb();
     const template = await db
       .select()
       .from(templates)
@@ -31,6 +34,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+    const db = getDb();
     await db.delete(templates).where(eq(templates.id, Number(id)));
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import AdBanner from "@/components/AdBanner";
 
+export const dynamic = "force-dynamic";
+
 interface Template {
   id: number;
   name: string;
@@ -15,10 +17,12 @@ interface Template {
 
 async function getTemplate(id: string): Promise<Template | null> {
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/templates/${id}`,
-      { cache: "no-store" }
-    );
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const res = await fetch(`${baseUrl}/api/templates/${id}`, {
+      cache: "no-store",
+    });
     if (!res.ok) return null;
     return res.json();
   } catch {

@@ -1,6 +1,8 @@
 import TemplateCard from "@/components/TemplateCard";
 import AdBanner from "@/components/AdBanner";
 
+export const dynamic = "force-dynamic";
+
 interface Template {
   id: number;
   name: string;
@@ -14,7 +16,10 @@ interface Template {
 
 async function getTemplates(): Promise<Template[]> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/templates`, {
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const res = await fetch(`${baseUrl}/api/templates`, {
       cache: "no-store",
     });
     if (!res.ok) return [];

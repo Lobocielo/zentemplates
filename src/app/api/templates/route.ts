@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { templates } from "@/db/schema";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
+    const db = getDb();
     const allTemplates = await db
       .select()
       .from(templates)
@@ -30,6 +33,7 @@ export async function POST(request: Request) {
     const imageUrl = await uploadImage(image);
     const { url: fileUrl, name: fileName } = await uploadFile(file);
 
+    const db = getDb();
     const newTemplate = await db.insert(templates).values({
       name,
       description: description || "",
