@@ -43,7 +43,8 @@ export async function POST(request: Request) {
     }).returning();
 
     return NextResponse.json(newTemplate[0], { status: 201 });
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to create template" }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: "Failed to create template", details: message }, { status: 500 });
   }
 }
